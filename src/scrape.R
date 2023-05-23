@@ -1,9 +1,13 @@
 library(xml2)
 library(rvest)
 library(magrittr)
+library(dplyr)
+library(tidyr)
 library(stringr)
 
 # -----------------------------------------------------------------------------
+# Main scrape function. Retrieves all unique IDs and then loops over those
+# IDs, scraping a table of ecological characteristics corr. to each.
 
 scrape_all_tables <- function(){
   df_unique_ID_species_pairs <-
@@ -20,6 +24,14 @@ scrape_all_tables <- function(){
 }
 
 # -----------------------------------------------------------------------------
+# Given an ID, this reads the table of info at a website related to that ID,
+# then tidies it and widens it to a tidy format suitable for use with map_df
+# NOTE: The format of the tables in the ecoflora are unusual, please
+# investigate them to understand the following code. Often there are multiple
+# values corresponding to one observation, one variable. Sometimes these
+# multiple values are already in a comma separated string, sometimes a variable
+# is listed twice. Here we opt for all multiple value entries to be in comma
+# separated strings.
 
 scrape_table_from_ID <- function(ID){
   link_stub <- "http://ecoflora.org.uk/search_ecochars.php?plant_no="
@@ -57,6 +69,7 @@ scrape_table_from_ID <- function(ID){
 }
 
 # -----------------------------------------------------------------------------
+# Get all  
 
 get_all_ID_species_pairs_with_flattened_synonyms <- function(){
   all_ID_species_pairs <- get_all_ID_species_pairs()
@@ -102,7 +115,7 @@ get_all_ID_species_pairs <- function(){
     "http://ecoflora.org.uk/search_synonyms.php"
   
   link_list_page <- read_html(ecoflora_link_list_URL)
-  links <- html_nodes(pg, "a")
+  links <- html_nodes(link_list_page, "a")
 
   ID_species_df <- links %>% 
     map_df(link_to_ID_and_species)
