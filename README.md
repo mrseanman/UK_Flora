@@ -1,9 +1,9 @@
 # UK_Flora
 Cleaning and compiling various work on trait correlations across species of UK flora.
 
-Script for pipeline is in `src/`. The script `main.R` will scrape all necessary data from the ecoflora, save that data, determine fertilization mode for that data, written to a new column `myFert3`, then finally save that dataframe including `myFert3` to a different file.
+Script for pipeline is in `src/`. The script `main.R` will scrape all necessary data from the ecoflora, save that data, determine fertilization mode for that data (written to a new column `myFert3`), then finally save that dataframe including `myFert3` to a different file.
 
-Datasets can be found in `data/`. These include *old* data, this includes:
+Datasets can be found in `data/`. These include *old data*, including:
 
 - Old raw data scraped from the ecoflora in June 2020.
 - That old scrape data which was processed to determine myFert3 using an old Python script.
@@ -16,4 +16,6 @@ I am not able to test this for the scrape aspect, since the website from which t
 
 These tests were passed, but in doing so, a couple of bugs and areas for obvious improvement were identified in the old Python code.
 At the moment these have been reproduced in the R scripts.
+
+The important aspects of determining `myFert3` are in the file `src/determine_fertilization_characteristics.R`. The main function of this file is `assign_3_group_fertilization()`. In this file, characteristics of species are determined atomically in functions. These characteristics are combined to determine `myFert3` in `assign_3_group_fertilization()`.
 
