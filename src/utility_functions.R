@@ -1,6 +1,28 @@
-# -----------------------------------------------------------------------------
+suppressWarnings({
+library(magrittr)
+library(purrr)
+library(stringr)
+library(dplyr)
+library(tidyr)
+})
 
-contains_only_certain_values_in_comma_sep_string <- function(values, css){
+# ==============================================================================
+# css = "Comma Separated String"
+# values is vector test values, think of these as the RHS of an %in% expression
+#     e.g. values = c("foo", "bar", "qux")
+# css is vector of comma separated strings 
+#     e.g. css <-.c("foo, bar", "foobar, foo, bar", "baz") and a
+
+# This returns a logical vector of length length(css)
+#     return[[1]] == TRUE means that ALL of elements of split_css(css[[1]])
+#     are in values.
+#     The total return for this example is
+#     c(TRUE, FALSE, FALSE)
+
+# NB there is an altered version of %in% used where the treatment of NA
+# is different
+# NB value can be of length 1 and this form of the function is useful.
+contains_only_certain_values_in_comma_sep_string <- function(css, values){
   css_split <- split_css(css)
   
   css_split %>% 
@@ -11,9 +33,24 @@ contains_only_certain_values_in_comma_sep_string <- function(values, css){
       )
 }
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
+# css = "Comma Separated String"
+# values is vector test values, think of these as the RHS of an %in% expression
+#     e.g. values = c("foo", "bar", "qux")
+# css is vector of comma separated strings 
+#     e.g. css <-.c("foo, bar", "foobar, foo, bar", "baz") and a
 
-contains_any_of_certain_values_in_comma_sep_string <- function(values, css){
+# This returns a logical vector of length length(css)
+#     return[[1]] == TRUE means that at least one the elements
+#     of split_css(css[[1]]) is in values.
+
+#     The total return for this example is
+#     c(TRUE, TRUE, FALSE)
+
+# NB there is an altered version of %in% used where the treatment of NA
+# is different
+# NB value can be of length 1 and this form of the function is useful.
+contains_any_of_certain_values_in_comma_sep_string <- function(css, values){
   css_split <- split_css(css)
   
   css_split %>% 
@@ -24,7 +61,14 @@ contains_any_of_certain_values_in_comma_sep_string <- function(values, css){
        )
 }
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
+# css = "Comma separated string"
+# Splits a vector of comma separated strings in to a list of vectors, splitting 
+# by commas
+# e.g. split_css(c("foo, bar", "foobar, baz", "qux")) is
+#         list(c("foo", "bar"),
+#              c("foobar", "baz"),
+#              c("qux"))
 
 split_css <- function(css){
   # splitting by "," not ", " in case there are some without white space.
@@ -33,21 +77,22 @@ split_css <- function(css){
   css_split %>% map(trimws)
 }
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
 
 basic_cleaning <- function(df){
   df %>%
     mutate(across(everything(), make_str_na_actual_na)) %>%
-    map_df(trimws)
+    mutate(across(where(is.character), trimws))
 }
 
-# -----------------------------------------------------------------------------
-
+# ==============================================================================
+# Vectorised function that turns any entries that are the literal string "na"
+# or "NA" etc. in to actual NA
 make_str_na_actual_na <- function(vec){
     # Just list the all lower case options here
     fake_str_nans <- c("nan", "na")
     turn_to_nan_cases <- contains_only_certain_values_in_comma_sep_string(
-      tolower(fake_str_nans), vec) |
+      vec, tolower(fake_str_nans)) |
       is.na(vec) |
       is.nan(vec)
     

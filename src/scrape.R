@@ -1,3 +1,4 @@
+suppressWarnings({
 library(xml2)
 library(rvest)
 library(magrittr)
@@ -5,8 +6,9 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(purrr)
+})
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
 # Main scrape function. Retrieves all unique IDs and then loops over those
 # IDs, scraping a table of ecological characteristics corr. to each.
 
@@ -24,7 +26,7 @@ scrape_all_tables <- function(){
   
 }
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
 # Given an ID, this reads the table of info at a website related to that ID,
 # then tidies it and widens it to a tidy format suitable for use with map_df
 # NOTE: The format of the tables in the ecoflora are unusual, please
@@ -69,8 +71,12 @@ scrape_table_from_ID <- function(ID){
     select(ID, everything())
 }
 
-# -----------------------------------------------------------------------------
-# Get all  
+# ==============================================================================
+# Takes the output of get_all_ID_species_pairs() and flattens the potentially
+# multiple "other" species names in to one column "other_species_names".
+# The output is a df with one row per unique species. This row will give the
+# unique ecoflora ID, the main species names and a comma separated list of
+# other species names.
 
 get_all_ID_species_pairs_with_flattened_synonyms <- function(){
   all_ID_species_pairs <- get_all_ID_species_pairs()
@@ -109,7 +115,13 @@ get_all_ID_species_pairs_with_flattened_synonyms <- function(){
     )
 }
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
+# Using a directory page in the ecoflora, at the url at the start of this
+# function, this compiles a df of all the species IDs listed in this directory
+# page. The IDs are strings of numbers that seem to be the internal reference
+# for uniquely identifying species within the ecoflora.
+# The directory consists of hyperlinks. This function loops over all hyperlinks 
+# in the directory page, calling link_to_ID_and_species() at each one.
 
 get_all_ID_species_pairs <- function(){
   ecoflora_link_list_URL <- 
@@ -128,7 +140,16 @@ get_all_ID_species_pairs <- function(){
     filter(!is.na(ID))
 }
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
+# This takes a html anchor (<a>) (a hyperlink) and from that extracts
+# various data:
+# - The ID of that link, which is the last portion of the url the hyperlink
+#     points to.
+# - The species name (the text of the hyperlink).
+# - Whether or not the hyperlink corr. to a "synonym" or to a
+#     "main species name". This is determined by certain attributes of the 
+#     anchor object. In the directory these attributes manifest as differing
+#     colours of hyperlink.
 
 link_to_ID_and_species <- function(link){
   href <- link %>% html_attr("href")
@@ -144,7 +165,7 @@ link_to_ID_and_species <- function(link){
     # detect how the text is wrapped in HTML
     # 'synonym' names have no <font> wrapper around the actual species
     # name. So the <a> element having no children corr. to being a synonym.
-    # Whereas non-synonnym links have the text wrapped in a <font> elemnet.
+    # Whereas non-synonnym links have the text wrapped in a <font> element.
     is_synonym_name <- link %>%
       html_children() %>%
       length() %>% 
