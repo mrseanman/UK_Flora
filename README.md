@@ -17,5 +17,17 @@ I am not able to test this for the scrape aspect, since the website from which t
 These tests were passed, but in doing so, a couple of bugs and areas for obvious improvement were identified in the old Python code.
 At the moment these have been reproduced in the R scripts.
 
+The spread of `myFert3` has changed quite significantly:
+
+| Fert Mode     | n (June 2020) | n (June 2023) |
+| ------------- | ------------- |---------------|
+| selfing       | 60            | 57            |
+| mixed         | 787           | 643           |
+| outcrossing   | 235           | 185           |
+| NA            | 2192          | 2390          |
+
+
+
 The important aspects of determining `myFert3` are in the file `src/determine_fertilization_characteristics.R`. The main function of this file is `assign_3_group_fertilization()`. In this file, characteristics of species are determined atomically in functions. These characteristics are combined to determine `myFert3` in `assign_3_group_fertilization()`.
+
 
