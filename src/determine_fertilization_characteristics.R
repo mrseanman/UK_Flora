@@ -104,7 +104,9 @@ apomictic <- function(df){
 # Return type is a logical vector corr. to the rows of df
 
 explicitly_described_as_mixed <- function(df){
-
+  
+  # TODO normally cross => outcrossing
+  #     normally self => selfing
   contains_any_of_certain_values_in_comma_sep_string(
     pull(df, Fertilization),
     c("cross and self",
@@ -124,12 +126,15 @@ explicitly_described_as_mixed <- function(df){
 
 assign_3_group_fertilization <- function(df){
   
+  # TODO Inbreeding % takes precedence in determining selfers (except for primula vulgaris)
+  
   seemingly_strictly_outcrossing <- seemingly_strictly_outcrossing(df)
   cleistogamous <- cleistogamous(df)
   apomictic <- apomictic(df)
   explicitly_described_as_mixed <- explicitly_described_as_mixed(df)
   
   # -------   Main logic of determining fert mode    ---------------------------
+  # TODO Drop Apomixis => Selfing
   selfing <- cleistogamous | apomictic
   mixed <- explicitly_described_as_mixed | (selfing &
                                               seemingly_strictly_outcrossing)
