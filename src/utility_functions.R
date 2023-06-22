@@ -78,7 +78,6 @@ split_css <- function(css){
 }
 
 # ==============================================================================
-
 basic_cleaning <- function(df){
   df %>%
     mutate(across(everything(), make_str_na_actual_na)) %>%
@@ -107,5 +106,12 @@ make_str_na_actual_na <- function(vec){
         turn_to_nan_cases ~ NA,
         TRUE ~ vec)
     }
+}
+
+# ==============================================================================
+# for doing not (!) on a vector where many elements are NA.
+# FALSE | NA is NA, but often we want it to be FALSE
+safe_not <- function(logi){
+  !replace_na(logi, FALSE)
 }
 
