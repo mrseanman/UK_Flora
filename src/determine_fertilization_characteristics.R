@@ -29,9 +29,6 @@ assign_3_group_fertilization <- function(df){
   explicitly_or_implicitly_outcrossing <-
     explicitly_described_as_outcrossing | seemingly_strictly_outcrossing
   
-  explicitly_selfing_and_explicitly_outcrossing <- 
-    explicitly_described_as_selfing & explicitly_described_as_outcrossing
-  
   # -------   Main logic of determining fert mode    ---------------------------
   selfing <-
     cleistogamous |
@@ -40,7 +37,6 @@ assign_3_group_fertilization <- function(df){
   
   mixed <-
     (explicitly_described_as_mixed |
-       explicitly_selfing_and_explicitly_outcrossing |
        has_medium_inbreeding_rate) &
     safe_not(has_high_inbreeeding_rate)
   
@@ -85,15 +81,12 @@ assign_3_group_fertilization_QA_flag <- function(df){
 # Return type is a logical vector corr. to the rows of df
 explicitly_described_as_selfing <- function(df){
   
-  contains_only_certain_values_in_comma_sep_string(
-    pull(df, Fertilization),
-    c("normally self",
-# NB including "apomictic" and "viviparous" because these traits have no affect
-# on Fertilization mode. If they occur in the record, OK, it makes no difference.
-# If they do not occur in a record, but say "normally self" does, then this 
-# function will still return TRUE, which is what we want.
-      "apomictic",
-      "viviparous"))
+  df %>% 
+    pull(Fertilization) %>% 
+    # These are irrelevant to Fertilization mode
+    remove_instances_from_css(c("apomictic", "viviparous")) %>% 
+    contains_only_certain_values_in_comma_sep_string("normally self")
+
 }
 
 # ==============================================================================
@@ -102,10 +95,11 @@ explicitly_described_as_selfing <- function(df){
 # Return type is a logical vector corr. to the rows of df
 explicitly_described_as_mixed <- function(df){
   
-  contains_any_of_certain_values_in_comma_sep_string(
-    pull(df, Fertilization),
-    c("cross and self",
-      "cross or automatic self"))
+  df %>% 
+    pull(Fertilization) %>% 
+    contains_any_of_certain_values_in_comma_sep_string(
+      c("cross and self",
+        "cross or automatic self"))
 }
 
 # ==============================================================================
@@ -114,15 +108,12 @@ explicitly_described_as_mixed <- function(df){
 # Return type is a logical vector corr. to the rows of df
 explicitly_described_as_outcrossing <- function(df){
   
-  contains_only_certain_values_in_comma_sep_string(pull(df, Fertilization),
-     c("obligatory cross",
-       "normally cross",
-# NB including "apomictic" and "viviparous" because these traits have no affect
-# on Fertilization mode. If they occur in the record, OK, it makes no difference.
-# If they do not occur in a record, but say "obligatory cross" does, then this 
-# function will still return TRUE, which is what we want.
-       "apomictic",
-       "viviparous"))
+  df %>% 
+    pull(Fertilization) %>% 
+    # These are irrelevant to Fertilization mode
+    remove_instances_from_css(c("apomictic", "viviparous")) %>% 
+    contains_only_certain_values_in_comma_sep_string(c("obligatory cross",
+                                                       "normally cross"))
 }
 
 # ==============================================================================
@@ -133,20 +124,29 @@ explicitly_described_as_outcrossing <- function(df){
 # Retrun type is a logical vector corr. to the rows of df.
 seemingly_strictly_outcrossing <- function(df){
   
-  has_low_inbreeding_rate <- has_inbreeding_rate_band(df, "low")
+  has_low_inbreeding_rate <-
+    df %>% has_inbreeding_rate_band("low")
   
-  fertilized_by_insects <- 
-    contains_only_certain_values_in_comma_sep_string(pull(df, Fertilization),
-                                                     "insects")
+  fertilized_by_insects <-
+    df %>% 
+    pull(Fertilization) %>% 
+    contains_only_certain_values_in_comma_sep_string("insects")
+  
   explicitly_self_sterile <-
+    df %>% 
+    pull(Fertilization) %>% 
     # NB "contains_any" not "contains_only"
-    contains_any_of_certain_values_in_comma_sep_string(pull(df, Fertilization),
-                                                       "self sterile")
+    contains_any_of_certain_values_in_comma_sep_string("self sterile")
+  
   dioecous <-
-    contains_only_certain_values_in_comma_sep_string(pull(df, Dicliny),
-                                                     "dioecous")
+    df %>% 
+    pull(Dicliny) %>% 
+    contains_only_certain_values_in_comma_sep_string("dioecous")
+  
   dichogamous_enough <-
-    contains_only_certain_values_in_comma_sep_string(pull(df, Dichogamy),
+    df %>% 
+    pull(Dichogamy) %>% 
+    contains_only_certain_values_in_comma_sep_string(
       c("protogynous",
         "protandrous",
         "markedly protandrous",
@@ -181,11 +181,12 @@ seemingly_strictly_outcrossing <- function(df){
 # Return type is a logical vector corr. to the rows of df
 cleistogamous <- function(df){
   
-  contains_only_certain_values_in_comma_sep_string(pull(df, Cleistogamy),
-    c("pseudo-cleistogamous",
-      "entirely cleistogamous",
-      "usually cleistogamous")
-  )
+  df %>% 
+    pull(Cleistogamy) %>% 
+    contains_only_certain_values_in_comma_sep_string(
+      c("pseudo-cleistogamous",
+        "entirely cleistogamous",
+        "usually cleistogamous"))
 }
 
 

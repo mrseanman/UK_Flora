@@ -115,3 +115,11 @@ safe_not <- function(logi){
   !replace_na(logi, FALSE)
 }
 
+remove_instances_from_css <- function(css, items_to_remove){
+  css_split <- split_css(css)
+  
+  css_split %>% 
+    map(~.x[!(.x %in% items_to_remove)]) %>%
+    map_chr(~paste(.x, collapse=", "))
+}
+
