@@ -19,12 +19,18 @@ assign_3_group_fertilization <- function(df){
   explicitly_described_as_mixed <- explicitly_described_as_mixed(df)
   explicitly_described_as_selfing <- explicitly_described_as_selfing(df)
   
+  has_high_inbreeeding_rate <- has_inbreeding_rate_band(df, "high")
+  has_medium_inbreeding_rate <- has_inbreeding_rate_band(df, "medium")
+  has_low_inbreeding_rate <- has_inbreeding_rate_band(df, "low")
+  
   seemingly_strictly_outcrossing <- seemingly_strictly_outcrossing(df)
   cleistogamous <- cleistogamous(df)
-  has_high_inbreeeding_rate <- has_high_inbreeeding_rate(df)
-  
+
   explicitly_or_implicitly_outcrossing <-
     explicitly_described_as_outcrossing | seemingly_strictly_outcrossing
+  
+  explicitly_selfing_and_explicitly_outcrossing <- 
+    explicitly_described_as_selfing & explicitly_described_as_outcrossing
   
   # -------   Main logic of determining fert mode    ---------------------------
   selfing <-
@@ -34,17 +40,13 @@ assign_3_group_fertilization <- function(df){
   
   mixed <-
     (explicitly_described_as_mixed |
-       (selfing & explicitly_or_implicitly_outcrossing)) &
+       explicitly_selfing_and_explicitly_outcrossing |
+       has_medium_inbreeding_rate) &
     safe_not(has_high_inbreeeding_rate)
   
-  # TODO
-  # New method, use at a later stage
-  # outcrossing <- seemingly_strictly_outcrossing &
-  #                   !(replace_na(mixed|selfing, FALSE))
-  
   outcrossing <-
-    (explicitly_described_as_outcrossing | seemingly_strictly_outcrossing) &
-    !safe_not(mixed)
+    explicitly_or_implicitly_outcrossing &
+    safe_not(mixed | selfing)
   # ----------------------------------------------------------------------------
   
   # Note the order of these is very important. Some rows will have
@@ -131,6 +133,8 @@ explicitly_described_as_outcrossing <- function(df){
 # Retrun type is a logical vector corr. to the rows of df.
 seemingly_strictly_outcrossing <- function(df){
   
+  has_low_inbreeding_rate <- has_inbreeding_rate_band(df, "low")
+  
   fertilized_by_insects <- 
     contains_only_certain_values_in_comma_sep_string(pull(df, Fertilization),
                                                      "insects")
@@ -151,7 +155,6 @@ seemingly_strictly_outcrossing <- function(df){
         "entirely protogynous")
     )
   
-  # TODO consider changing from any to only here
   has_some_incompatibility_system <-
     !contains_any_of_certain_values_in_comma_sep_string(
       pull(df, `Incompatibility systems`), "none")
@@ -159,6 +162,7 @@ seemingly_strictly_outcrossing <- function(df){
   # -----
   
   all_outcrossing_traits <- list(
+    has_low_inbreeding_rate,
     fertilized_by_insects,
     explicitly_self_sterile,
     dioecous,
@@ -187,21 +191,28 @@ cleistogamous <- function(df){
 
 # ==============================================================================
 # Given a df of species, determines if each species is has a Inbreeding rate
-# greater than or equal to 85%. This would then later correspond to 
+# greater than or equal to 85%. This would then later correspond to selfing.
+# Similar functions for other bands of 
 # Return type is a logical vector corr. to the rows of df
 # Note the special case here.
-has_high_inbreeeding_rate <- function(df){
-  high_inbreeding_rate <- df %>%
-    pull(`Inbreeding (%)`) %>% 
-    as.double() %>% 
-    `>=`(85)
+determine_inbreeding_rate_band <- function(df){
+  inbreeding_rate <- df %>% pull(`Inbreeding (%)`) %>% as.double()
   
-  # Known that data for this species is not applicable
   is_primula_vulgaris <- df %>% 
     pull(main_species_name) %>% 
     `==`("Primula vulgaris")
   
-  # Only give high inbreeding rate TRUE is not primula vulgaris
-  high_inbreeding_rate & !replace_na(is_primula_vulgaris, FALSE)
+  case_when(
+    inbreeding_rate >= 80 & safe_not(is_primula_vulgaris) ~ "high",
+    inbreeding_rate >= 20 & inbreeding_rate < 80 ~ "medium",
+    inbreeding_rate < 20 ~ "low",
+    TRUE ~ NA_character_
+  )
 }
+
+# Helper function to fit in with grammar of functions here
+has_inbreeding_rate_band <- function(df, band){
+  determine_inbreeding_rate_band(df) == band
+}
+
 
