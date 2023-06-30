@@ -5,6 +5,7 @@ suppressWarnings({
   library(stringr)
   library(purrr)
   library(readr)
+  library(janitor)
   # scrape specific
   library(xml2)
   library(rvest)
@@ -26,11 +27,9 @@ if (skip_scrape){
 } else {
   cat("Scraping data:")
   scraped_data <- scrape_all_tables()
+  cat("Saving scraped data...\n")
+  scraped_data %>% saveRDS("data/new_data_scrape.rds")
 }
-
-cat("Cleaning data...\n")
-#scraped_data_clean <- scraped_data %>% basic_cleaning()
-#scraped_data %>% saveRDS("data/new_data_scrape.rds")
 
 cat("Joining Bio Geo data...\n")
 scraped_data <- scraped_data %>% join_bio_geo_data()

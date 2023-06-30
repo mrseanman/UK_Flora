@@ -70,20 +70,13 @@ split_css <- function(css){
 }
 
 # ==============================================================================
-basic_cleaning <- function(df){
-  df %>%
-    mutate(across(everything(), make_str_na_actual_na)) %>%
-    mutate(across(where(is.character), trimws))
-}
-
-# ==============================================================================
 # Vectorised function that turns any entries that are the literal string "na"
 # or "NA" etc. in to actual NA
 make_str_na_actual_na <- function(vec){
     # Just list the all lower case options here
-    fake_str_nans <- c("nan", "na")
+    fake_str_nans <- c("", "nan", "na")
     turn_to_nan_cases <- contains_only_certain_values_in_comma_sep_string(
-      vec, tolower(fake_str_nans)) |
+      tolower(vec), fake_str_nans)  |
       is.na(vec) |
       is.nan(vec)
     

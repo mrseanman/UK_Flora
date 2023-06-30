@@ -46,6 +46,9 @@ scrape_table_from_ID <- function(ID){
   }
   
   # Collapse multiple values in to comma separated string
+  # TODO Consider making this ", " a different symbol since, for example,
+  # "present, mechanism unknown" is an occurring single entry in
+  # `Incompatibility systems` sometimes.
   df_multiple_value_collapse <- relevant_table %>% 
     select(name = Name, value = Value) %>% 
     group_by(name) %>% 
@@ -53,12 +56,19 @@ scrape_table_from_ID <- function(ID){
               value = paste(value, collapse=", "),
               .groups="drop")
   
-  df_multiple_value_collapse %>% 
+  df_collapsed_wide <- df_multiple_value_collapse %>% 
     pivot_wider(names_from = name,
                 values_from = value) %>% 
     mutate(ID = ID) %>% 
     # move ID to start
     select(ID, everything())
+  
+  # remove entries that are just empty strings, "na", " " etc
+  # NB this is doing "cleaning as you scrape" i.e. the scrape is not exactly
+  # what is in the ecoflora
+  df_collapsed_wide %>% 
+    mutate(across(everything(), make_str_na_actual_na)) %>% 
+    remove_empty("cols")
 }
 
 # ==============================================================================
