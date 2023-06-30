@@ -1,13 +1,3 @@
-suppressWarnings({
-library(xml2)
-library(rvest)
-library(magrittr)
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(purrr)
-})
-
 # ==============================================================================
 # Main scrape function. Retrieves all unique IDs and then loops over those
 # IDs, scraping a table of ecological characteristics corr. to each.
