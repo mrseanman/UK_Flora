@@ -36,7 +36,7 @@ cat("Joining Bio Geo data...\n")
 scraped_data <- scraped_data %>% join_bio_geo_data()
 
 cat("Assigning fertilization mode...\n")
-data_with_fertilization_mode <- scraped_data_clean %>% 
+data_with_fertilization_mode <- scraped_data %>% 
   assign_3_group_fertilization()
 
 data_with_fertilization_mode %>% saveRDS("data/new_data_new_fert_mode.rds")

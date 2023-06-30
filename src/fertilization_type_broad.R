@@ -9,47 +9,32 @@
 assign_3_group_fertilization <- function(df){
   
   # Outcrossing traits ------------------------------------
-  fertilized_by_insects_val <- fertilized_by_insects(df)
-  has_low_inbreeding_rate_val <- has_inbreeding_rate_band(df, "low")
-  dioecous_val <- dioecous(df)
-  dichogamous_enough_val <- dichogamous_enough(df)
-  explicitly_self_sterile_val <- explicitly_self_sterile(df)
-  has_some_incompatibility_system_val <- has_some_incompatibility_system(df)
-  explicitly_described_as_outcrossing_val <- explicitly_described_as_outcrossing(df)
-  
   any_outcrossing_trait_val <-
-    fertilized_by_insects_val               |
-    has_low_inbreeding_rate_val             |
-    dioecous_val                            |
-    dichogamous_enough_val                  |
-    explicitly_self_sterile_val             |
-    has_some_incompatibility_system_val     |
-    explicitly_described_as_outcrossing_val
+    fertilized_by_insects(df)               |
+    has_inbreeding_rate_band(df, "low")     |
+    dioecous(df)                            |
+    dichogamous_enough(df)                  |
+    explicitly_self_sterile(df)             |
+    has_some_incompatibility_system(df)     |
+    explicitly_described_as_outcrossing(df)
   
   
   # Selfing traits ----------------------------------------
-  explicitly_described_as_selfing_val <- explicitly_described_as_selfing(df)
-  cleistogamous_val <- cleistogamous(df)
-  has_high_inbreeeding_rate_val <- has_inbreeding_rate_band(df, "high")
-  
   any_selfing_trait_val <-
-    explicitly_described_as_selfing_val   |
-    cleistogamous_val                     |
-    has_high_inbreeeding_rate_val   
+    explicitly_described_as_selfing(df)   |
+    cleistogamous(df)                     |
+    has_inbreeding_rate_band(df, "high")   
   
   
   # Mixed traits ------------------------------------------
-  has_medium_inbreeding_rate_val <- has_inbreeding_rate_band(df, "medium")
-  explicitly_described_as_mixed_val <- explicitly_described_as_mixed(df)
-  
   any_mixed_trait_val <-
-    has_medium_inbreeding_rate_val    |
-    explicitly_described_as_mixed_val
+    has_inbreeding_rate_band(df, "medium")    |
+    explicitly_described_as_mixed(df)
   
   # Main logic of determining fert mode    ----------------
   mixed_val <-
     any_mixed_trait_val &
-    safe_not(has_high_inbreeeding_rate_val)
+    safe_not(has_inbreeding_rate_band(df, "high") )
   
   selfing_val <-
     any_selfing_trait_val &
